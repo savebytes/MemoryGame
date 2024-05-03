@@ -10,7 +10,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sage"
+    android:background="@color/color_progress_none"
     tools:ignore="MissingClass">
 
     <LinearLayout

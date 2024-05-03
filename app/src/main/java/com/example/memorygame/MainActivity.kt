@@ -1,6 +1,7 @@
 package com.example.memorygame
 
 import android.animation.ArgbEvaluator
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
@@ -11,8 +12,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
+import android.view.View.OnClickListener
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -28,17 +28,13 @@ import com.example.memorygame.models.UserImageList
 import com.example.memorygame.utils.EXTRA_BOARD_SIZE
 import com.example.memorygame.utils.EXTRA_GAME_NAME
 import com.github.jinatonic.confetti.CommonConfetti
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.analytics.ktx.logEvent
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.squareup.picasso.Picasso
+import com.google.firebase.analytics.ktx.analytics as analytics1
 
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
@@ -54,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvNumPairs: TextView
 
     private val db = Firebase.firestore
-    private val firebaseAnalytics = Firebase.analytics
+    private val firebaseAnalytics = Firebase.analytics1
     private val remoteConfig = Firebase.remoteConfig
     private var gameName: String? = null
     private var customGameImages: List<String>? = null
@@ -91,9 +87,9 @@ class MainActivity : AppCompatActivity() {
         when (item.itemId) {
             R.id.mi_refresh -> {
                 if (memoryGame.getNumMoves() > 0 && !memoryGame.haveWonGame()) {
-                    showAlertDialog("Quit your current game?", null, View.OnClickListener {
+                    showAlertDialog("Quit your current game?", null) {
                         setupBoard()
-                    })
+                    }
                 } else {
                     setupBoard()
                 }
@@ -134,14 +130,15 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+    @SuppressLint("InflateParams")
     private fun showDownloadDialog() {
         val boardDownloadView = LayoutInflater.from(this).inflate(R.layout.dialog_download_board, null)
-        showAlertDialog("Fetch memory game", boardDownloadView, View.OnClickListener {
+        showAlertDialog("Fetch memory game", boardDownloadView) {
             val etDownloadGame = boardDownloadView.findViewById<EditText>(R.id.etDownloadGame)
             val gameToDownload = etDownloadGame.text.toString().trim()
 
             downloadGame(gameToDownload)
-        })
+        }
     }
 
     private fun downloadGame(customGameName: String) {
@@ -178,11 +175,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("InflateParams")
     private fun showCreationDialog() {
         firebaseAnalytics.logEvent("creation_show_dialog", null)
         val boardSizeView = LayoutInflater.from(this).inflate(R.layout.dialog_board_size, null)
         val radioGroupSize = boardSizeView.findViewById<RadioGroup>(R.id.radioGroupSize)
-        showAlertDialog("Create your own memory board", boardSizeView, View.OnClickListener {
+        showAlertDialog("Create your own memory board", boardSizeView) {
             val desiredBoardSize = when (radioGroupSize.checkedRadioButtonId) {
                 R.id.rbEasy -> BoardSize.EASY
                 R.id.rbMedium -> BoardSize.MEDIUM
@@ -194,9 +192,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, CreateActivity::class.java)
             intent.putExtra(EXTRA_BOARD_SIZE, desiredBoardSize)
             startActivityForResult(intent, CREATE_REQUEST_CODE)
-        })
+        }
     }
 
+    @SuppressLint("InflateParams")
     private fun showNewSizeDialog() {
         val boardSizeView = LayoutInflater.from(this).inflate(R.layout.dialog_board_size, null)
         val radioGroupSize = boardSizeView.findViewById<RadioGroup>(R.id.radioGroupSize)
@@ -205,7 +204,7 @@ class MainActivity : AppCompatActivity() {
             BoardSize.MEDIUM -> radioGroupSize.check(R.id.rbMedium)
             BoardSize.HARD -> radioGroupSize.check(R.id.rbHard)
         }
-        showAlertDialog("Choose new size", boardSizeView, View.OnClickListener {
+        showAlertDialog("Choose new size", boardSizeView) {
             boardSize = when (radioGroupSize.checkedRadioButtonId) {
                 R.id.rbEasy -> BoardSize.EASY
                 R.id.rbMedium -> BoardSize.MEDIUM
@@ -214,10 +213,10 @@ class MainActivity : AppCompatActivity() {
             gameName = null
             customGameImages = null
             setupBoard()
-        })
+        }
     }
 
-    private fun showAlertDialog(title: String, view: View?, positiveClickListener: View.OnClickListener) {
+    private fun showAlertDialog(title: String, view: View?, positiveClickListener: OnClickListener) {
         AlertDialog.Builder(this)
             .setTitle(title)
             .setView(view)
@@ -227,6 +226,7 @@ class MainActivity : AppCompatActivity() {
             }.show()
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupBoard() {
         supportActionBar?.title = gameName ?: getString(R.string.app_name)
         memoryGame = MemoryGame(boardSize, customGameImages)
@@ -255,6 +255,7 @@ class MainActivity : AppCompatActivity() {
         rvBoard.layoutManager = GridLayoutManager(this, boardSize.getWidth())
     }
 
+    @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     private fun updateGameWithFlip(position: Int) {
         // Error handling:
         if (memoryGame.haveWonGame()) {
